@@ -1,13 +1,12 @@
 import streamlit as st
 import pandas as pd
 import openpyxl
+from validations import validate_customer_template  # Import validation functions
 
 # Upload Templates
 TEMPLATES = {
-    "Assembly Template": "Assembly Template.xlsx",
-    "Bill of Material Template": "Bill of material template.xlsx",
-    "Customer Template": "Customer Template.xlsx",
-    # Add all templates you have in the dictionary
+    "Customer Template": validate_customer_template,
+    # Add other templates here with corresponding validation functions
 }
 
 st.title("Interactive Import Wizard")
@@ -21,57 +20,50 @@ if uploaded_file:
         data = pd.read_csv(uploaded_file, dtype=str)
     elif file_extension == "xlsx":
         data = pd.read_excel(uploaded_file, dtype=str)
-    
+
     st.write("Preview of Uploaded File:")
     st.dataframe(data.head())
 
     # Step 2: Template Selection
     selected_template = st.selectbox("Select the Template", list(TEMPLATES.keys()))
     if selected_template:
-        template_file = TEMPLATES[selected_template]
         st.write(f"You selected the `{selected_template}` template.")
-        
-        # Load template column headers
-        try:
-            template_data = pd.read_excel(template_file, dtype=str)
-            template_columns = template_data.columns.tolist()
-        except Exception as e:
-            st.error(f"Error loading the template file: {e}")
-            template_columns = []
 
-        # Step 3: Mapping Columns
+        # Step 3: Column Mapping
         st.subheader("Column Mapping")
         column_mapping = {}
-        for col in template_columns:
+        for col in data.columns:
             user_column = st.selectbox(
-                f"Map `{col}` to your data:",
-                options=["--Select--"] + data.columns.tolist(),
+                f"Map `{col}` to template field:",
+                options=["--Select--"] + list(data.columns),
                 key=col
             )
             if user_column != "--Select--":
                 column_mapping[col] = user_column
 
-        # Step 4: Validation and Transformation
-        st.subheader("Validation & Transformation")
-        for template_col, user_col in column_mapping.items():
-            # Example validation: Check if a column contains only numbers
-            if template_col in ["Quantity", "Price"]:  # Adjust based on template
-                invalid_rows = data[~data[user_col].apply(lambda x: isinstance(x, (int, float)))]
-                if not invalid_rows.empty:
-                    st.error(f"Invalid data in column `{user_col}`. Please correct.")
+        # Automatically rename columns in the DataFrame
+        data.rename(columns=column_mapping, inplace=True)
 
-        # Step 5: Export
+        # Step 4: Validation
+        st.subheader("Validation Results")
+        validation_function = TEMPLATES[selected_template]
+        validation_errors = validation_function(data)
+
+        if validation_errors:
+            st.error("Validation errors found!")
+            for error in validation_errors:
+                st.write(error)
+        else:
+            st.success("All validations passed!")
+
+        # Step 5: Export Validated File
         if st.button("Export Validated File"):
-            # Perform transformations if needed
-            mapped_data = data.rename(columns=column_mapping)
-
-            # Export to Excel
             output_file = f"Validated_{selected_template}.xlsx"
-            mapped_data.to_excel(output_file, index=False)
-            
+            data.to_excel(output_file, index=False)
+
             with open(output_file, "rb") as file:
                 st.download_button(
-                    label="Download File",
+                    label="Download Validated File",
                     data=file,
                     file_name=output_file,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
