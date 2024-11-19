@@ -5,8 +5,15 @@ from validations import validate_customer_template  # Import validation function
 
 # Upload Templates
 TEMPLATES = {
+    "Assembly Template": "Assembly Template.xlsx",
+    "Bill of Material Template": "Bill of material template.xlsx",
+    "Customer Template": "Customer Template.xlsx",
+    # Add all templates you have in the dictionary
+}
+
+VALIDATIONS = {
     "Customer Template": validate_customer_template,
-    # Add other templates here with corresponding validation functions
+    # Add all templates you have in the dictionary
 }
 
 st.title("Interactive Import Wizard")
@@ -20,22 +27,31 @@ if uploaded_file:
         data = pd.read_csv(uploaded_file, dtype=str)
     elif file_extension == "xlsx":
         data = pd.read_excel(uploaded_file, dtype=str)
-
+    
     st.write("Preview of Uploaded File:")
     st.dataframe(data.head())
 
     # Step 2: Template Selection
     selected_template = st.selectbox("Select the Template", list(TEMPLATES.keys()))
     if selected_template:
-        st.write(f"You selected the `{selected_template}` template.")
+        template_file = TEMPLATES[selected_template]
+        st.write(f"You selected the {selected_template} template.")
+        
+        # Load template column headers
+        try:
+            template_data = pd.read_excel(template_file, dtype=str)
+            template_columns = template_data.columns.tolist()
+        except Exception as e:
+            st.error(f"Error loading the template file: {e}")
+            template_columns = []
 
-        # Step 3: Column Mapping
+        # Step 3: Mapping Columns
         st.subheader("Column Mapping")
         column_mapping = {}
-        for col in data.columns:
+        for col in template_columns:
             user_column = st.selectbox(
-                f"Map `{col}` to template field:",
-                options=["--Select--"] + list(data.columns),
+                f"Map {col} to your data:",
+                options=["--Select--"] + data.columns.tolist(),
                 key=col
             )
             if user_column != "--Select--":
@@ -46,7 +62,7 @@ if uploaded_file:
 
         # Step 4: Validation
         st.subheader("Validation Results")
-        validation_function = TEMPLATES[selected_template]
+        validation_function = VALIDATIONS[selected_template]
         validation_errors = validation_function(data)
 
         if validation_errors:
