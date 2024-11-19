@@ -17,9 +17,9 @@ uploaded_file = st.file_uploader("Upload an Excel/CSV File", type=["csv", "xlsx"
 if uploaded_file:
     file_extension = uploaded_file.name.split('.')[-1].lower()
     if file_extension == "csv":
-        data = pd.read_csv(uploaded_file)
+        data = pd.read_csv(uploaded_file, dtype=str)
     elif file_extension == "xlsx":
-        data = pd.read_excel(uploaded_file)
+        data = pd.read_excel(uploaded_file, dtype=str)
     
     st.write("Preview of Uploaded File:")
     st.dataframe(data.head())
@@ -32,7 +32,7 @@ if uploaded_file:
         
         # Load template column headers
         try:
-            template_data = pd.read_excel(template_file)
+            template_data = pd.read_excel(template_file, dtype=str)
             template_columns = template_data.columns.tolist()
         except Exception as e:
             st.error(f"Error loading the template file: {e}")
