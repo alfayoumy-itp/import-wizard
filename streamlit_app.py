@@ -48,31 +48,34 @@ if uploaded_file:
         # Step 3: Mapping Columns
         st.subheader("Column Mapping")
         column_mapping = {}
-        for col in template_columns:
-            user_column = st.selectbox(
-                f"Map {col} to your data:",
-                options=["--Select--"] + data.columns.tolist(),
+
+        for col in data.columns:
+            mapped_field = st.selectbox(
+                f"Map your data column `{col}` to a template field:",
+                options=["--Select--"] + template_columns,
                 key=col
             )
-            if user_column != "--Select--":
-                column_mapping[col] = user_column
+            if mapped_field != "--Select--":
+                column_mapping[col] = mapped_field
 
-        # Automatically rename columns in the DataFrame
-        data.rename(columns=column_mapping, inplace=True)
-
+        
         # Step 4: Validation
         st.subheader("Validation Results")
-        validation_function = VALIDATIONS[selected_template]
-        validation_errors = validation_function(data)
+        if st.button("Validate File"):
+            # Automatically rename columns in the DataFrame
+            data.rename(columns=column_mapping, inplace=True)
+            validation_function = VALIDATIONS[selected_template]
+            validation_errors = validation_function(data)
 
-        if validation_errors:
-            st.error("Validation errors found!")
-            for error in validation_errors:
-                st.write(error)
-        else:
-            st.success("All validations passed!")
+            if validation_errors:
+                st.error("Validation errors found!")
+                for error in validation_errors:
+                    st.write(error)
+            else:
+                st.success("All validations passed!")
 
         # Step 5: Export Validated File
+        st.subheader("Export Results")
         if st.button("Export Validated File"):
             output_file = f"Validated_{selected_template}.xlsx"
             data.to_excel(output_file, index=False)
