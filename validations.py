@@ -49,9 +49,9 @@ def format_errors_with_table(index_series, column_name):
         "Row Index": index_series.index+2,
         column_name: index_series.values
     })
-    error_table.set_index("Row Index", inplace=True)
     st.write(f"❌ Errors in {column_name}:\n")
-    st.table(error_table)
+    style = error_table.style.hide_index()
+    st.write(style.to_html(), unsafe_allow_html=True)
     return column_name
 
 # Helper Validation Functions
