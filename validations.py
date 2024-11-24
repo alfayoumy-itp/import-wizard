@@ -120,7 +120,7 @@ def validate_emails(column, column_name):
 
 def validate_phone_number(phone, subsidiary_country='US'):
     if pd.isnull(phone):
-        return np.NaN
+        return
     
     # Skip single quote character if it exists as the first character
     if phone.startswith("'"):
@@ -146,14 +146,14 @@ def validate_phone_number(phone, subsidiary_country='US'):
         # Validate the phone number
         if not phonenumbers.is_valid_number(parsed_number) or not phonenumbers.is_possible_number(parsed_number):
             # Return the formatted number if valid
-            return "Invalid phone number format: {phone}"
+            return f"Invalid phone number format: {phone}"
 
     except phonenumbers.NumberParseException as e:
         return f"Error parsing phone number: {e}"
     except phonenumbers.PhoneNumberFormatException as e:
         return f"Error formatting phone number: {e}"
 
-    return "Invalid phone number format: {phone}"
+    return f"Invalid phone number format: {phone}"
 
 def validate_phone(column, column_name):
     # Apply `validate_phone_number` to the column
