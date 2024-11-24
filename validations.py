@@ -47,7 +47,7 @@ VALID_COUNTRIES = [
 # Valid terms for validation
 VALID_TERMS = [
     "1% 10 Net 30", "2% 10 Net 30", "Due on receipt", 
-    "Net 15", "Net 30", "Net 60"
+    "Net 15", "Net 30", "Net 45", "Net 60"
 ]
 
 # Valid currency codes for validation
