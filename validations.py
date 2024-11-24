@@ -44,6 +44,32 @@ VALID_COUNTRIES = [
     "Yemen", "Zambia", "Zimbabwe", "Åland Islands"
 ]
 
+# Valid terms for validation
+VALID_TERMS = [
+    "1% 10 Net 30", "2% 10 Net 30", "Due on receipt", 
+    "Net 15", "Net 30", "Net 60"
+]
+
+# Valid currency codes for validation
+VALID_CURRENCIES = [
+    "AFN", "ALL", "DZD", "USD", "EUR", "AOA", "XCD", "ARS", "AMD", "AWG", "AUD", 
+    "AZN", "BSD", "BHD", "BDT", "BBD", "BYN", "BZD", "XOF", "BMD", "BTN", "INR", 
+    "BOB", "BOV", "BAM", "BWP", "NOK", "BRL", "BND", "BGN", "BIF", "CVE", "KHR", 
+    "XAF", "CAD", "KYD", "CLF", "CLP", "CNY", "COP", "COU", "KMF", "CDF", "NZD", 
+    "CRC", "CUC", "CUP", "ANG", "CZK", "DKK", "DJF", "DOP", "EGP", "SVC", "ERN", 
+    "ETB", "FKP", "FJD", "GMD", "GEL", "GHS", "GIP", "GTQ", "GBP", "GNF", "GYD", 
+    "HTG", "HNL", "HKD", "HUF", "ISK", "IDR", "XDR", "IRR", "IQD", "ILS", "JMD", 
+    "JPY", "JOD", "KZT", "KES", "KPW", "KRW", "KWD", "KGS", "LAK", "LBP", "LSL", 
+    "ZAR", "LRD", "LYD", "CHF", "MOP", "MGA", "MWK", "MYR", "MVR", "MRU", "MUR", 
+    "MXN", "MXV", "MDL", "MNT", "MAD", "MZN", "MMK", "NAD", "NPR", "NIO", "NGN", 
+    "OMR", "PKR", "PAB", "PGK", "PYG", "PEN", "PHP", "PLN", "QAR", "MKD", "RON", 
+    "RUB", "RWF", "SHP", "WST", "STN", "SAR", "RSD", "SCR", "SLE", "SGD", "ANG", 
+    "SBD", "SOS", "SSP", "LKR", "SDG", "SRD", "SZL", "SEK", "CHE", "CHW", "SYP", 
+    "TWD", "TJS", "TZS", "THB", "TOP", "TTD", "TND", "TRY", "TMT", "UGX", "UAH", 
+    "AED", "USN", "UYI", "UYU", "UZS", "VUV", "VEF", "VND", "XPF", "YER", "ZMW", 
+    "ZWL"
+]
+
 def format_errors_with_table(index_series, column_name, error_message):
     error_table = pd.DataFrame({
         "Row Index": index_series.index+2,
@@ -121,6 +147,24 @@ def validate_null_values(column, column_name):
         return format_errors_with_table(null_rows, column_name, "contains null (missing) values")
     return None
 
+def validate_terms(column, column_name):
+    invalid_terms = column[~column.isin(VALID_TERMS)]
+    if not invalid_terms.empty:
+        return format_errors_with_table(
+            invalid_terms, column_name, 
+            "contains invalid payment terms"
+        )
+    return None
+
+def validate_currency(column, column_name):
+    invalid_currencies = column[~column.isin(VALID_CURRENCIES)]
+    if not invalid_currencies.empty:
+        return format_errors_with_table(
+            invalid_currencies, column_name, 
+            "contains invalid currency codes"
+        )
+    return None
+
 # Validation Rules for Templates
 def validate_customer_template(dataframe):
     errors = []
@@ -196,6 +240,12 @@ def validate_customer_template(dataframe):
         if country_field in dataframe.columns:
             errors.append(validate_country(dataframe[country_field].dropna(), country_field))
             errors.append(validate_null_values(dataframe[country_field], country_field))
+
+    # 10. Terms and Currency
+    if "terms" in dataframe.columns:
+        errors.append(validate_terms(dataframe["terms"], "Terms"))
+    if "currency" in dataframe.columns:
+        errors.append(validate_currency(dataframe["currency"], "Currency"))
 
     # Remove empty errors
     return [error for error in errors if error]
