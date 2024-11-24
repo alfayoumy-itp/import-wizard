@@ -112,7 +112,7 @@ def validate_emails(column, column_name):
             invalid_emails.append(email)
     
     if invalid_emails:
-        return format_errors_with_table(invalid_emails, column_name, "invalid email format")
+        return format_errors_with_table(pd.Series(invalid_emails), column_name, "invalid email format")
     
     return None
 
