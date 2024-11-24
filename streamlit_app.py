@@ -157,7 +157,7 @@ elif choice == "Rename Country Names":
                 
 
 
-elif menu == "Clean Weird Characters":
+elif choice == "Clean Weird Characters":
     st.title("Clean Weird Characters")
 
     # File upload
