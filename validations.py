@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import streamlit as st
 
 # List of valid countries
 VALID_COUNTRIES = [
@@ -49,7 +50,7 @@ def format_errors_with_table(index_series, column_name):
         "Row Index": index_series.index,
         column_name: index_series.values
     })
-    return f"❌ Errors in {column_name}:\n{error_table.to_string(index=False)}"
+    return f"❌ Errors in {column_name}:\n{st.table(error_table)}"
 
 # Helper Validation Functions
 def validate_unique(column, column_name):
