@@ -1,8 +1,6 @@
 import pandas as pd
 import re
 import streamlit as st
-import email_validator
-email_validator.CHECK_DELIVERABILITY = False
 from email_validator import validate_email, EmailNotValidError
 
 # List of valid countries
@@ -103,12 +101,12 @@ def validate_length(column, max_length, column_name):
         return format_errors_with_table(too_long, column_name, f"values exceed the maximum length of {max_length}")
     return None
 
-def validate_email(column, column_name):
+def validate_emails(column, column_name):
     invalid_emails = []
     for email in column:
         try:
             # Validate email and normalize
-            emailinfo = validate_email(email)
+            emailinfo = validate_email(email, check_deliverability=False)
             normalized_email = emailinfo.normalized
         except EmailNotValidError as e:
             invalid_emails.append(email)
@@ -219,7 +217,7 @@ def validate_customer_template(dataframe):
 
     # 4. Email Validation
     if "email" in dataframe.columns:
-        errors.append(validate_email(dataframe["email"], "email"))
+        errors.append(validate_emails(dataframe["email"], "email"))
 
     # 5. Phone Validation
     for phone_field in ["phone", "Address1_phone", "Address2_phone"]:
