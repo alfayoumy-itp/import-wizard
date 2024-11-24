@@ -158,10 +158,10 @@ def validate_phone_number(phone, subsidiary_country='US'):
 
 def validate_phone(column, column_name):
     # Apply `validate_phone_number` to the column
-    validation_results = column.apply(validate_phone_number)
+    phone_validation_results = column.apply(validate_phone_number)
 
     # Identify invalid phone numbers
-    invalid_phones = validation_results[validation_results.str.contains("Invalid", na=False)]
+    invalid_phones = phone_validation_results[phone_validation_results.str.contains("Invalid", na=False)]
     if not invalid_phones.empty:
         return format_errors_with_table(invalid_phones, column_name, "invalid phone number format")
 
