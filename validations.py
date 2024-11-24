@@ -144,16 +144,17 @@ def validate_phone_number(phone, subsidiary_country='US'):
             parsed_number = phonenumbers.parse(phone, subsidiary_country)
 
         # Validate the phone number
-        if not phonenumbers.is_valid_number(parsed_number) or not phonenumbers.is_possible_number(parsed_number):
+        if phonenumbers.is_valid_number(parsed_number) or phonenumbers.is_possible_number(parsed_number):
             # Return the formatted number if valid
-            return f"Invalid phone number format: {phone}"
+            return "Valid phone number"
 
     except phonenumbers.NumberParseException as e:
         return f"Error parsing phone number: {e}"
+    
     except phonenumbers.PhoneNumberFormatException as e:
         return f"Error formatting phone number: {e}"
 
-    return "Valid phone number"
+    return f"Invalid phone number format: {phone}"
 
 def validate_phone(column, column_name):
     # Apply `validate_phone_number` to the column
