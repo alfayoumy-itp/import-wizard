@@ -48,7 +48,7 @@ def format_errors_with_table(index_series, column_name):
     error_table = pd.DataFrame({
         "Row Index": index_series.index+2,
         column_name: index_series.values
-    })
+    }, index=False)
     st.write(f"❌ Errors in {column_name}:\n")
     st.table(error_table)
     return column_name
