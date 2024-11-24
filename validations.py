@@ -117,7 +117,7 @@ def validate_emails(column, column_name):
     return None
 
 def validate_phone(column, column_name):
-    phone_regex = r'^\+?\d[\d\s()-]{8,}$'
+    phone_regex = r'^(\+?\d{1,3}[-.\s]?)?(\(\d+\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}(?:\s?ext\s?\d{1,5})?$'
     invalid_phones = column[~column.str.match(phone_regex, na=False)]
     if not invalid_phones.empty:
         return format_errors_with_table(invalid_phones, column_name, "invalid phone number format")
