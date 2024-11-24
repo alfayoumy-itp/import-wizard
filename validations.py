@@ -43,72 +43,79 @@ VALID_COUNTRIES = [
     "Yemen", "Zambia", "Zimbabwe", "Åland Islands"
 ]
 
+def format_errors_with_table(index_series, column_name):
+    error_table = pd.DataFrame({
+        "Row Index": index_series.index,
+        column_name: index_series.values
+    })
+    return f"❌ Errors in {column_name}:\n{error_table.to_string(index=False)}"
+
 # Helper Validation Functions
 def validate_unique(column, column_name):
     duplicates = column[column.duplicated()]
     if not duplicates.empty:
-        return f"❌ {column_name} contains duplicate values: {duplicates.to_list()}"
+        return format_errors_with_table(duplicates, column_name)
     return None
 
 def validate_conditional(dataframe, condition_col, condition_val, target_col, target_name):
     invalid_rows = dataframe[
         (dataframe[condition_col] == condition_val) & dataframe[target_col].isnull()
-    ]
+    ][target_col]
     if not invalid_rows.empty:
-        return f"❌ {target_name} is required when {condition_col} is {condition_val}. Rows: {invalid_rows.index.to_list()}"
+        return format_errors_with_table(invalid_rows, target_name)
     return None
 
 def validate_length(column, max_length, column_name):
     too_long = column[column.str.len() > max_length]
     if not too_long.empty:
-        return f"❌ {column_name} exceeds max length of {max_length}. Rows: {too_long.index.to_list()}"
+        return format_errors_with_table(too_long, column_name)
     return None
 
 def validate_email(column):
     email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     invalid_emails = column[~column.str.match(email_regex, na=False)]
     if not invalid_emails.empty:
-        return f"❌ Invalid email addresses found: {invalid_emails.to_list()}"
+        return format_errors_with_table(invalid_emails, "Email")
     return None
 
 def validate_phone(column):
     phone_regex = r'^\+?\d[\d\s()-]{8,}$'
     invalid_phones = column[~column.str.match(phone_regex, na=False)]
     if not invalid_phones.empty:
-        return f"❌ Invalid phone numbers found: {invalid_phones.to_list()}"
+        return format_errors_with_table(invalid_phones, "Phone")
     return None
 
 def validate_boolean(column, column_name):
     invalid_values = column[~column.isin([True, False, "TRUE", "FALSE"])]
     if not invalid_values.empty:
-        return f"❌ {column_name} contains invalid boolean values. Rows: {invalid_values.index.to_list()}"
+        return format_errors_with_table(invalid_values, column_name)
     return None
 
 def validate_subsidiary(column):
     errors = []
-    # Check for missing values (mandatory check for NetSuite One-World accounts)
+    # Check for missing values
     missing_subsidiary = column[column.isnull() | column.str.strip().eq("")]
     if not missing_subsidiary.empty:
-        errors.append(f"❌ Subsidiary is mandatory. Rows: {missing_subsidiary.index.to_list()}")
+        errors.append(format_errors_with_table(missing_subsidiary, "Subsidiary"))
     
-    # Validate format: Parent Subsidiary Name : Child Subsidiary Name
+    # Validate format
     hierarchy_regex = r'^([^\|:]+(:[^\|:]+)*)(\|([^\|:]+(:[^\|:]+)*))*$'
     invalid_format = column[~column.str.match(hierarchy_regex, na=False)]
     if not invalid_format.empty:
-        errors.append(f"❌ Invalid subsidiary format. Rows: {invalid_format.index.to_list()}")
+        errors.append(format_errors_with_table(invalid_format, "Subsidiary"))
     
-    return errors
+    return "\n".join(errors) if errors else None
 
 def validate_country(column, column_name):
     invalid_countries = column[~column.isin(VALID_COUNTRIES)]
     if not invalid_countries.empty:
-        return f"❌ {column_name} contains invalid country names. Rows: {invalid_countries.index.to_list()}"
+        return format_errors_with_table(invalid_countries, column_name)
     return None
 
 def validate_null_values(column, column_name):
     null_rows = column[column.isnull()]
     if not null_rows.empty:
-        return f"❌ {column_name} contains null values. Rows: {null_rows.index.to_list()}"
+        return format_errors_with_table(null_rows, column_name)
     return None
 
 # Validation Rules for Templates
