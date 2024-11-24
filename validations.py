@@ -44,12 +44,12 @@ VALID_COUNTRIES = [
     "Yemen", "Zambia", "Zimbabwe", "Åland Islands"
 ]
 
-def format_errors_with_table(index_series, column_name):
+def format_errors_with_table(index_series, column_name, error_message):
     error_table = pd.DataFrame({
         "Row Index": index_series.index+2,
         column_name: index_series.values
     })
-    st.write(f"❌ Errors in {column_name}:\n")
+    st.write(f"❌ Errors in {column_name}, {error_message}:\n")
     st.dataframe(error_table, hide_index=True)
     return column_name
 
@@ -57,7 +57,7 @@ def format_errors_with_table(index_series, column_name):
 def validate_unique(column, column_name):
     duplicates = column[column.duplicated()]
     if not duplicates.empty:
-        return format_errors_with_table(duplicates, column_name)
+        return format_errors_with_table(duplicates, column_name, "duplicate values found")
     return None
 
 def validate_conditional(dataframe, condition_col, condition_val, target_col, target_name):
@@ -65,60 +65,60 @@ def validate_conditional(dataframe, condition_col, condition_val, target_col, ta
         (dataframe[condition_col] == condition_val) & dataframe[target_col].isnull()
     ][target_col]
     if not invalid_rows.empty:
-        return format_errors_with_table(invalid_rows, target_name)
+        return format_errors_with_table(invalid_rows, target_name, f"missing values in '{target_name}' when '{condition_col}' is '{condition_val}'")
     return None
 
 def validate_length(column, max_length, column_name):
     too_long = column[column.str.len() > max_length]
     if not too_long.empty:
-        return format_errors_with_table(too_long, column_name)
+        return format_errors_with_table(too_long, column_name, f"values exceed the maximum length of {max_length}")
     return None
 
-def validate_email(column):
+def validate_email(column, column_name):
     email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     invalid_emails = column[~column.str.match(email_regex, na=False)]
     if not invalid_emails.empty:
-        return format_errors_with_table(invalid_emails, "Email")
+        return format_errors_with_table(invalid_emails, column_name, "invalid email format")
     return None
 
-def validate_phone(column):
+def validate_phone(column, column_name):
     phone_regex = r'^\+?\d[\d\s()-]{8,}$'
     invalid_phones = column[~column.str.match(phone_regex, na=False)]
     if not invalid_phones.empty:
-        return format_errors_with_table(invalid_phones, "Phone")
+        return format_errors_with_table(invalid_phones, column_name, "invalid phone number format")
     return None
 
 def validate_boolean(column, column_name):
     invalid_values = column[~column.isin([True, False, "TRUE", "FALSE"])]
     if not invalid_values.empty:
-        return format_errors_with_table(invalid_values, column_name)
+        return format_errors_with_table(invalid_values, column_name, "contains values that are not boolean (TRUE, FALSE)")
     return None
 
-def validate_subsidiary(column):
+def validate_subsidiary(column, column_name):
     errors = []
     # Check for missing values
     missing_subsidiary = column[column.isnull() | column.str.strip().eq("")]
     if not missing_subsidiary.empty:
-        errors.append(format_errors_with_table(missing_subsidiary, "Subsidiary"))
+        errors.append(format_errors_with_table(missing_subsidiary, column_name, "contains missing values"))
     
     # Validate format
     hierarchy_regex = r'^([^\|:]+(:[^\|:]+)*)(\|([^\|:]+(:[^\|:]+)*))*$'
     invalid_format = column[~column.str.match(hierarchy_regex, na=False)]
     if not invalid_format.empty:
-        errors.append(format_errors_with_table(invalid_format, "Subsidiary"))
+        errors.append(format_errors_with_table(invalid_format, column_name, "has invalid subsidiary hierarchy format"))
     
     return "\n".join(errors) if errors else None
 
 def validate_country(column, column_name):
     invalid_countries = column[~column.isin(VALID_COUNTRIES)]
     if not invalid_countries.empty:
-        return format_errors_with_table(invalid_countries, column_name)
+        return format_errors_with_table(invalid_countries, column_name, "contains invalid country names")
     return None
 
 def validate_null_values(column, column_name):
     null_rows = column[column.isnull()]
     if not null_rows.empty:
-        return format_errors_with_table(null_rows, column_name)
+        return format_errors_with_table(null_rows, column_name, "contains null (missing) values")
     return None
 
 # Validation Rules for Templates
@@ -173,11 +173,12 @@ def validate_customer_template(dataframe):
 
     # 5. Email Validation
     if "email" in dataframe.columns:
-        errors.append(validate_email(dataframe["email"]))
+        errors.append(validate_email(dataframe["email"], "email"))
 
     # 6. Phone Validation
-    if "phone" in dataframe.columns:
-        errors.append(validate_phone(dataframe["phone"]))
+    for phone_field in ["phone", "Address1_phone", "Address2_phone"]:
+        if phone_field in dataframe.columns:
+            errors.append(validate_phone(dataframe["phone"], "phone"))
 
     # 7. Boolean Validations
     for boolean_field in ["isPerson", "isInactive", "Address1_defaultBilling", "Address1_defaultShipping", "Address2_defaultBilling", "Address2_defaultShipping"]:
@@ -187,7 +188,7 @@ def validate_customer_template(dataframe):
     
     # 8. Subsidiary Validation
     if "subsidiary" in dataframe.columns:
-        subsidiary_errors = validate_subsidiary(dataframe["subsidiary"].astype(str))
+        subsidiary_errors = validate_subsidiary(dataframe["subsidiary"].astype(str), "subsidiary")
         errors.append(subsidiary_errors)
 
     # 9. Country Validation
