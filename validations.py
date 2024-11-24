@@ -178,7 +178,7 @@ def validate_customer_template(dataframe):
     # 6. Phone Validation
     for phone_field in ["phone", "Address1_phone", "Address2_phone"]:
         if phone_field in dataframe.columns:
-            errors.append(validate_phone(dataframe["phone"], "phone"))
+            errors.append(validate_phone(dataframe[phone_field], phone_field))
 
     # 7. Boolean Validations
     for boolean_field in ["isPerson", "isInactive", "Address1_defaultBilling", "Address1_defaultShipping", "Address2_defaultBilling", "Address2_defaultShipping"]:
