@@ -153,7 +153,7 @@ def validate_phone_number(phone, subsidiary_country='US'):
     except phonenumbers.PhoneNumberFormatException as e:
         return f"Error formatting phone number: {e}"
 
-    return f"Invalid phone number format: {phone}"
+    return "Valid phone number"
 
 def validate_phone(column, column_name):
     # Apply `validate_phone_number` to the column
