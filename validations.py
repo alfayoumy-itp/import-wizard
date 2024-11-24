@@ -118,49 +118,44 @@ def validate_emails(column, column_name):
     
     return None
 
-def validate_phone(column, column_name, subsidiary_country='US'):
+def validate_phone_number(phone, subsidiary_country='US'):
+    if pd.isnull(phone):
+        return np.NaN
+    
+    # Skip single quote character if it exists as the first character
+    if phone.startswith("'"):
+        phone = phone[1:]
 
+    # Check maximum length
+    if len(phone) > 32:
+        return "Invalid phone number: exceeds maximum length of 32 characters"
 
-    def validate_phone_number(phone):
-        # Skip single quote character if it exists as the first character
-        if phone.startswith("'"):
-            phone = phone[1:]
+    # Check for emergency service phone numbers (commonly start with specific digits)
+    emergency_numbers = ['112', '911', '999', '100', '101', '102']  # Add more if necessary
+    if any(phone.startswith(emergency) for emergency in emergency_numbers):
+        return "Valid emergency service number"
 
-        # Check maximum length
-        if len(phone) > 32:
-            return "Invalid phone number: exceeds maximum length of 32 characters"
+    # Attempt to parse the phone number
+    try:
+        if phone.startswith('+'):
+            parsed_number = phonenumbers.parse(phone)
+        else:
+            # Assuming a default country code; adjust as needed
+            parsed_number = phonenumbers.parse(phone, subsidiary_country)
 
-        # Check for emergency service phone numbers (commonly start with specific digits)
-        emergency_numbers = ['112', '911', '999', '100', '101', '102']  # Add more if necessary
-        if any(phone.startswith(emergency) for emergency in emergency_numbers):
-            return "Valid emergency service number"
+        # Validate the phone number
+        if not phonenumbers.is_valid_number(parsed_number) or not phonenumbers.is_possible_number(parsed_number):
+            # Return the formatted number if valid
+            return "Invalid phone number format: {phone}"
 
-        # Attempt to parse the phone number
-        try:
-            if phone.startswith('+'):
-                parsed_number = phonenumbers.parse(phone)
-            else:
-                # Assuming a default country code; adjust as needed
-                parsed_number = phonenumbers.parse(phone, subsidiary_country)
+    except phonenumbers.NumberParseException as e:
+        return f"Error parsing phone number: {e}"
+    except phonenumbers.PhoneNumberFormatException as e:
+        return f"Error formatting phone number: {e}"
 
-            # Validate the phone number
-            if phonenumbers.is_valid_number(parsed_number):
-                # Return the formatted number if valid
-                return f"Valid number: {phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)}"
+    return "Invalid phone number format: {phone}"
 
-            # Check if it's a valid number format but not recognized
-            if phonenumbers.is_possible_number(parsed_number):
-                return "Possibly valid number format"
-
-            return "Invalid phone number format"
-
-        except phonenumbers.NumberParseException as e:
-            return f"Error parsing phone number: {e}"
-        except phonenumbers.PhoneNumberFormatException as e:
-            return f"Error formatting phone number: {e}"
-
-        return "Invalid phone number format"
-
+def validate_phone(column, column_name):
     # Apply `validate_phone_number` to the column
     validation_results = column.apply(validate_phone_number)
 
