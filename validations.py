@@ -79,7 +79,7 @@ def validate_phone(column):
     return None
 
 def validate_boolean(column, column_name):
-    invalid_values = column[~column.isin([True, False, "TRUE", "FALSE", "true", "false"])]
+    invalid_values = column[~column.isin([True, False, "TRUE", "FALSE"])]
     if not invalid_values.empty:
         return f"❌ {column_name} contains invalid boolean values. Rows: {invalid_values.index.to_list()}"
     return None
@@ -172,6 +172,7 @@ def validate_customer_template(dataframe):
     # 7. Boolean Validations
     for boolean_field in ["isPerson", "isInactive", "Address1_defaultBilling", "Address1_defaultShipping", "Address2_defaultBilling", "Address2_defaultShipping"]:
         if boolean_field in dataframe.columns:
+            dataframe[boolean_field] = dataframe[boolean_field].str.upper()
             errors.append(validate_boolean(dataframe[boolean_field], boolean_field))
     
     # 8. Subsidiary Validation
