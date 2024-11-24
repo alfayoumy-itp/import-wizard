@@ -72,7 +72,7 @@ VALID_CURRENCIES = [
 
 def format_errors_with_table(index_series, column_name, error_message):
     error_table = pd.DataFrame({
-        "Row Index": index_series.index+2,
+        "Row Index": index_series.index + 2,
         column_name: index_series.values
     })
     st.write(f"❌ Errors in {column_name}, {error_message}:\n")
@@ -177,16 +177,7 @@ def validate_customer_template(dataframe):
     if "entityId" in dataframe.columns:
         errors.append(validate_unique(dataframe["entityId"], "Customer ID"))
 
-    # 3. Conditional Fields
-    if "isPerson" in dataframe.columns:
-        if "companyName" in dataframe.columns:
-            errors.append(validate_conditional(dataframe, "isPerson", "FALSE", "companyName", "Company Name"))
-        if "firstName" in dataframe.columns:
-            errors.append(validate_conditional(dataframe, "isPerson", "TRUE", "firstName", "First Name"))
-        if "lastName" in dataframe.columns:
-            errors.append(validate_conditional(dataframe, "isPerson", "TRUE", "lastName", "Last Name"))
-
-    # 4. Length Validations
+    # 3. Length Validations
     length_constraints = {
         "externalId": 100,
         "entityId": 80,
@@ -215,21 +206,31 @@ def validate_customer_template(dataframe):
         if field in dataframe.columns:
             errors.append(validate_length(dataframe[field].astype(str), max_length, field))
 
-    # 5. Email Validation
+    # 4. Email Validation
     if "email" in dataframe.columns:
         errors.append(validate_email(dataframe["email"], "email"))
 
-    # 6. Phone Validation
+    # 5. Phone Validation
     for phone_field in ["phone", "Address1_phone", "Address2_phone"]:
         if phone_field in dataframe.columns:
             errors.append(validate_phone(dataframe[phone_field], phone_field))
 
-    # 7. Boolean Validations
+    # 6. Boolean Validations
     for boolean_field in ["isPerson", "isInactive", "Address1_defaultBilling", "Address1_defaultShipping", "Address2_defaultBilling", "Address2_defaultShipping"]:
         if boolean_field in dataframe.columns:
             dataframe[boolean_field] = dataframe[boolean_field].str.upper()
             errors.append(validate_boolean(dataframe[boolean_field], boolean_field))
     
+    # 7. Conditional Fields
+    if "isPerson" in dataframe.columns:
+        if "companyName" in dataframe.columns:
+            errors.append(validate_conditional(dataframe, "isPerson", "FALSE", "companyName", "Company Name"))
+        if "firstName" in dataframe.columns:
+            errors.append(validate_conditional(dataframe, "isPerson", "TRUE", "firstName", "First Name"))
+        if "lastName" in dataframe.columns:
+            errors.append(validate_conditional(dataframe, "isPerson", "TRUE", "lastName", "Last Name"))
+
+
     # 8. Subsidiary Validation
     if "subsidiary" in dataframe.columns:
         subsidiary_errors = validate_subsidiary(dataframe["subsidiary"].astype(str), "subsidiary")
