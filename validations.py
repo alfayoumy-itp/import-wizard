@@ -168,7 +168,7 @@ def validate_phone(column, column_name):
     return None
 
 def validate_boolean(column, column_name):
-    invalid_values = column[~column.isin([True, False, "TRUE", "FALSE"])]
+    invalid_values = column[~column.isin(["TRUE", "FALSE"])]
     if not invalid_values.empty:
         return format_errors_with_table(invalid_values, column_name, "contains values that are not boolean (TRUE, FALSE)")
     return None
