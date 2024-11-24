@@ -69,7 +69,19 @@ if uploaded_file:
             if mapped_field != "--Select--":
                 column_mapping[col] = mapped_field
 
-        
+        # Step 4: Data Exploration
+        st.subheader("Data Exploration")
+        # Show the column-wise data insights
+        if st.checkbox("Show Column Information"):
+            # Display data types and number of missing values
+            col_info = pd.DataFrame({
+                'Data Type': data.dtypes,
+                'Null Values': data.isnull().sum(),
+                'Non-Null Values': data.notnull().sum(),
+                'Unique Values': data.nunique()
+            })
+            st.write(col_info)
+            
         # Step 4: Validation
         st.subheader("Validation Results")
         if st.button("Validate File"):
