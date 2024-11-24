@@ -2,6 +2,8 @@ import pandas as pd
 import re
 import streamlit as st
 from email_validator import validate_email, EmailNotValidError
+import numpy as np
+import phonenumbers
 
 # List of valid countries
 VALID_COUNTRIES = [
@@ -116,11 +118,57 @@ def validate_emails(column, column_name):
     
     return None
 
-def validate_phone(column, column_name):
-    phone_regex = r'^(\+?\d{1,3}[-.\s]?)?(\(\d+\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}(?:\s?ext\s?\d{1,5})?$'
-    invalid_phones = column[~column.str.match(phone_regex, na=False)]
+def validate_phone(column, column_name, subsidiary_country='US'):
+
+
+    def validate_phone_number(phone):
+        # Skip single quote character if it exists as the first character
+        if phone.startswith("'"):
+            phone = phone[1:]
+
+        # Check maximum length
+        if len(phone) > 32:
+            return "Invalid phone number: exceeds maximum length of 32 characters"
+
+        # Check for emergency service phone numbers (commonly start with specific digits)
+        emergency_numbers = ['112', '911', '999', '100', '101', '102']  # Add more if necessary
+        if any(phone.startswith(emergency) for emergency in emergency_numbers):
+            return "Valid emergency service number"
+
+        # Attempt to parse the phone number
+        try:
+            if phone.startswith('+'):
+                parsed_number = phonenumbers.parse(phone)
+            else:
+                # Assuming a default country code; adjust as needed
+                parsed_number = phonenumbers.parse(phone, subsidiary_country)
+
+            # Validate the phone number
+            if phonenumbers.is_valid_number(parsed_number):
+                # Return the formatted number if valid
+                return f"Valid number: {phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)}"
+
+            # Check if it's a valid number format but not recognized
+            if phonenumbers.is_possible_number(parsed_number):
+                return "Possibly valid number format"
+
+            return "Invalid phone number format"
+
+        except phonenumbers.NumberParseException as e:
+            return f"Error parsing phone number: {e}"
+        except phonenumbers.PhoneNumberFormatException as e:
+            return f"Error formatting phone number: {e}"
+
+        return "Invalid phone number format"
+
+    # Apply `validate_phone_number` to the column
+    validation_results = column.apply(validate_phone_number)
+
+    # Identify invalid phone numbers
+    invalid_phones = validation_results[validation_results.str.contains("Invalid", na=False)]
     if not invalid_phones.empty:
         return format_errors_with_table(invalid_phones, column_name, "invalid phone number format")
+
     return None
 
 def validate_boolean(column, column_name):
