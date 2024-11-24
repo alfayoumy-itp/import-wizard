@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import streamlit as st
 from email_validator import validate_email, EmailNotValidError
+email_validator.CHECK_DELIVERABILITY = False
 
 # List of valid countries
 VALID_COUNTRIES = [
@@ -106,7 +107,7 @@ def validate_email(column, column_name):
     for email in column:
         try:
             # Validate email and normalize
-            emailinfo = validate_email(email, check_deliverability=False)
+            emailinfo = validate_email(email)
             normalized_email = emailinfo.normalized
         except EmailNotValidError as e:
             invalid_emails.append(email)
