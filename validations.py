@@ -44,6 +44,7 @@ VALID_COUNTRIES = [
 ]
 
 def format_errors_with_table(index_series, column_name):
+    
     error_table = pd.DataFrame({
         "Row Index": index_series.index,
         column_name: index_series.values
@@ -185,7 +186,7 @@ def validate_customer_template(dataframe):
     # 8. Subsidiary Validation
     if "subsidiary" in dataframe.columns:
         subsidiary_errors = validate_subsidiary(dataframe["subsidiary"].astype(str))
-        errors.extend(subsidiary_errors)
+        errors.append(subsidiary_errors)
 
     # 9. Country Validation
     for country_field in ["Address1_country", "Address2_country"]:
