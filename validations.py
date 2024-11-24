@@ -92,18 +92,26 @@ def validate_boolean(column, column_name):
     return None
 
 def validate_subsidiary(column):
+    if column is None or column.empty:
+        return "❌ Subsidiary column is missing or empty."
+
     errors = []
+
     # Check for missing values
     missing_subsidiary = column[column.isnull() | column.str.strip().eq("")]
     if not missing_subsidiary.empty:
         errors.append(format_errors_with_table(missing_subsidiary, "Subsidiary"))
-    
+
     # Validate format
     hierarchy_regex = r'^([^\|:]+(:[^\|:]+)*)(\|([^\|:]+(:[^\|:]+)*))*$'
-    invalid_format = column[~column.str.match(hierarchy_regex, na=False)]
-    if not invalid_format.empty:
-        errors.append(format_errors_with_table(invalid_format, "Subsidiary"))
-    
+    try:
+        invalid_format = column[~column.str.match(hierarchy_regex, na=False)]
+        if not invalid_format.empty:
+            errors.append(format_errors_with_table(invalid_format, "Subsidiary"))
+    except Exception as e:
+        errors.append(f"❌ Error during format validation for Subsidiary: {str(e)}")
+
+    # Return all errors as a single string
     return "\n".join(errors) if errors else None
 
 def validate_country(column, column_name):
