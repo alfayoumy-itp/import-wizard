@@ -53,11 +53,15 @@ if uploaded_file:
             # Check if the column name matches any of the template columns
             default_selection = col if col in template_columns else "--Select--"
             
+            # Get the index of the default selection in the options list
+            options = ["--Select--"] + template_columns
+            default_index = options.index(default_selection)
+            
             # Create a selectbox with the default selection
             mapped_field = st.selectbox(
                 f"Map your data column `{col}` to a template field:",
-                options=["--Select--"] + template_columns,
-                index=["--Select--"] + template_columns.index(default_selection),
+                options=options,
+                index=default_index,
                 key=col
             )
             
