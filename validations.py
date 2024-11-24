@@ -51,6 +51,7 @@ def format_errors_with_table(index_series, column_name):
     })
     st.write(f"❌ Errors in {column_name}:\n")
     st.table(error_table)
+    return column_name
 
 # Helper Validation Functions
 def validate_unique(column, column_name):
