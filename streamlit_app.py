@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import openpyxl
 from validations import validate_customer_template  # Import validation functions
-import rename_countries
+import countries
 
 # Upload Templates
 TEMPLATES = {
@@ -137,7 +137,7 @@ elif choice == "Rename Country Names":
         # Step 3: Rename Countries
         if st.button("Rename Countries"):
             try:
-                updated_data = rename_countries(data, country_column)
+                updated_data = countries.rename_countries(data, country_column)
                 st.success("Country names updated successfully!")
                 st.dataframe(updated_data.head())
 
