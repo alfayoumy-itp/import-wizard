@@ -149,12 +149,12 @@ def validate_phone_number(phone, subsidiary_country='US'):
             return "Valid phone number"
 
     except phonenumbers.NumberParseException as e:
-        return f"Error parsing phone number: {e}"
+        return f"Invalid phone number parsing: {e}"
     
     except phonenumbers.PhoneNumberFormatException as e:
-        return f"Error formatting phone number: {e}"
+        return f"Invalid phone number format: {e}"
 
-    return f"Invalid phone number format: {phone}"
+    return f"Invalid phone number: {phone}"
 
 def validate_phone(column, column_name):
     # Apply `validate_phone_number` to the column
