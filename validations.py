@@ -105,6 +105,12 @@ def validate_country(column, column_name):
         return f"❌ {column_name} contains invalid country names. Rows: {invalid_countries.index.to_list()}"
     return None
 
+def validate_null_values(column, column_name):
+    null_rows = column[column.isnull()]
+    if not null_rows.empty:
+        return f"❌ {column_name} contains null values. Rows: {null_rows.index.to_list()}"
+    return None
+
 # Validation Rules for Templates
 def validate_customer_template(dataframe):
     errors = []
@@ -176,7 +182,8 @@ def validate_customer_template(dataframe):
     # 9. Country Validation
     for country_field in ["Address1_country", "Address2_country"]:
         if country_field in dataframe.columns:
-            errors.append(validate_country(dataframe[country_field], country_field))
+            errors.append(validate_country(dataframe[country_field].dropna(), country_field))
+            errors.append(validate_null_values(dataframe[country_field], country_field))
 
     # Remove empty errors
     return [error for error in errors if error]

@@ -50,11 +50,18 @@ if uploaded_file:
         column_mapping = {}
 
         for col in data.columns:
+            # Check if the column name matches any of the template columns
+            default_selection = col if col in template_columns else "--Select--"
+            
+            # Create a selectbox with the default selection
             mapped_field = st.selectbox(
                 f"Map your data column `{col}` to a template field:",
                 options=["--Select--"] + template_columns,
+                index=["--Select--"] + template_columns.index(default_selection),
                 key=col
             )
+            
+            # Add mapping if a valid field is selected
             if mapped_field != "--Select--":
                 column_mapping[col] = mapped_field
 
