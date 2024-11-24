@@ -3,6 +3,7 @@ import pandas as pd
 import openpyxl
 from validations import validate_customer_template  # Import validation functions
 import countries
+import weird_characters
 
 # Upload Templates
 TEMPLATES = {
@@ -153,3 +154,71 @@ elif choice == "Rename Country Names":
                     )
             except Exception as e:
                 st.error(f"Error during processing: {e}")
+                
+
+
+elif menu == "Clean Weird Characters":
+    st.title("Clean Weird Characters")
+
+    # File upload
+    uploaded_file = st.file_uploader("Upload a file (CSV/Excel)", type=["csv", "xlsx"])
+    
+    if uploaded_file:
+        # Load the file into a DataFrame
+        file_extension = uploaded_file.name.split('.')[-1].lower()
+        if file_extension == "csv":
+            df = pd.read_csv(uploaded_file, dtype=str)
+        elif file_extension == "xlsx":
+            df = pd.read_excel(uploaded_file, dtype=str)
+
+        st.write("Preview of Uploaded File:")
+        st.dataframe(df.head())
+
+        # Column selection
+        st.subheader("Select Columns to Clean")
+        selected_columns = st.multiselect("Select the columns to clean:", df.columns.tolist())
+
+        # Language selection
+        st.subheader("Select Language")
+        language = st.radio("Choose the language:", ["English", "Arabic"])
+
+        # Process and clean the data
+        if st.button("Clean Data"):
+            if not selected_columns:
+                st.error("Please select at least one column to clean.")
+            else:
+                # Use the clean_columns function from the module
+                cleaned_df, weird_characters_df = weird_characters.clean_columns(df, selected_columns, language)
+
+                st.success("Data cleaning completed!")
+                st.write("Preview of Cleaned Data:")
+                st.dataframe(cleaned_df.head())
+
+                # Download files
+                st.subheader("Download Results")
+
+                # 1) Rows with weird characters
+                if not weird_characters_df.empty:
+                    st.write("Download rows with weird characters:")
+                    weird_file = "rows_with_weird_characters.xlsx"
+                    weird_characters_df.to_excel(weird_file, index=False)
+                    with open(weird_file, "rb") as file:
+                        st.download_button(
+                            label="Download Rows with Weird Characters",
+                            data=file,
+                            file_name=weird_file,
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                else:
+                    st.info("No weird characters found in the selected columns.")
+
+                # 2) Cleaned file
+                cleaned_file = "cleaned_data.xlsx"
+                cleaned_df.to_excel(cleaned_file, index=False)
+                with open(cleaned_file, "rb") as file:
+                    st.download_button(
+                        label="Download Cleaned File",
+                        data=file,
+                        file_name=cleaned_file,
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
