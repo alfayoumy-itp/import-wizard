@@ -273,5 +273,5 @@ COUNTRY_MAPPING = {
 
 # Helper function for renaming country abbreviations
 def rename_countries(data, country_column):
-    data[country_column] = data[country_column].replace(country_mapping)
+    data[country_column] = data[country_column].replace(COUNTRY_MAPPING)
     return data
