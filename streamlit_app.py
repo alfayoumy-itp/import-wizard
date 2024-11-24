@@ -80,8 +80,6 @@ if uploaded_file:
 
             if validation_errors:
                 st.error("Validation errors found!")
-                for error in validation_errors:
-                    st.write(error)
             else:
                 st.success("All validations passed!")
 

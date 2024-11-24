@@ -45,13 +45,12 @@ VALID_COUNTRIES = [
 ]
 
 def format_errors_with_table(index_series, column_name):
-    
     error_table = pd.DataFrame({
         "Row Index": index_series.index+2,
         column_name: index_series.values
     })
     st.write(f"❌ Errors in {column_name}:\n")
-    return st.table(error_table)
+    st.table(error_table)
 
 # Helper Validation Functions
 def validate_unique(column, column_name):
