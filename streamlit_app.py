@@ -19,7 +19,7 @@ VALIDATIONS = {
 }
 
 # Sidebar Navigation
-menu = ["Interactive Import Wizard", "Rename Country Names"]
+menu = ["Interactive Import Wizard", "Rename Country Names", "Clean Weird Characters"]
 choice = st.sidebar.selectbox("Select Page", menu)
 
 if choice == "Interactive Import Wizard":
