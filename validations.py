@@ -1,8 +1,9 @@
 import pandas as pd
 import re
 import streamlit as st
-from email_validator import validate_email, EmailNotValidError
+import email_validator
 email_validator.CHECK_DELIVERABILITY = False
+from email_validator import validate_email, EmailNotValidError
 
 # List of valid countries
 VALID_COUNTRIES = [
