@@ -1,6 +1,7 @@
 import pandas as pd
 import re
 import streamlit as st
+from email_validator import validate_email, EmailNotValidError
 
 # List of valid countries
 VALID_COUNTRIES = [
@@ -101,10 +102,18 @@ def validate_length(column, max_length, column_name):
     return None
 
 def validate_email(column, column_name):
-    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    invalid_emails = column[~column.str.match(email_regex, na=False)]
-    if not invalid_emails.empty:
+    invalid_emails = []
+    for email in column:
+        try:
+            # Validate email and normalize
+            emailinfo = validate_email(email, check_deliverability=False)
+            normalized_email = emailinfo.normalized
+        except EmailNotValidError as e:
+            invalid_emails.append(email)
+    
+    if invalid_emails:
         return format_errors_with_table(invalid_emails, column_name, "invalid email format")
+    
     return None
 
 def validate_phone(column, column_name):
