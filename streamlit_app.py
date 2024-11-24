@@ -75,14 +75,13 @@ if uploaded_file:
         if st.checkbox("Show Column Information"):
             # Display data types and number of missing values
             col_info = pd.DataFrame({
-                'Data Type': data.dtypes,
                 'Null Values': data.isnull().sum(),
                 'Non-Null Values': data.notnull().sum(),
                 'Unique Values': data.nunique()
             })
             st.write(col_info)
-            
-        # Step 4: Validation
+
+        # Step 5: Validation
         st.subheader("Validation Results")
         if st.button("Validate File"):
             # Automatically rename columns in the DataFrame
@@ -95,7 +94,7 @@ if uploaded_file:
             else:
                 st.success("All validations passed!")
 
-        # Step 5: Export Validated File
+        # Step 6: Export Validated File
         st.subheader("Export Results")
         if st.button("Export Validated File"):
             output_file = f"Validated_{selected_template}.xlsx"
